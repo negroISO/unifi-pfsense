@@ -4,10 +4,10 @@
 # Installs the Uni-Fi controller software on a FreeBSD machine (presumably running pfSense).
 
 # The latest version of UniFi:
-UNIFI_SOFTWARE_URL="https://dl.ubnt.com/unifi/5.10.25/UniFi.unix.zip"
+UNIFI_SOFTWARE_URL="http://dl.ubnt.com/unifi/5.10.25/UniFi.unix.zip"
 
 # The rc script associated with this branch or fork:
-RC_SCRIPT_URL="https://github.com/negroISO/unifi-pfsense/blob/master/install-unifi/install-unifi.sh"
+RC_SCRIPT_URL="https://raw.githubusercontent.com/negroiso/unifi-pfsense/master/rc.d/unifi.sh"
 
 
 # If pkg-ng is not yet installed, bootstrap it:
@@ -93,24 +93,23 @@ AddPkg () {
  	pkgname=$1
  	pkginfo=`grep "\"name\":\"$pkgname\"" packagesite.yaml`
  	pkgvers=`echo $pkginfo | pcregrep -o1 '"version":"(.*?)"' | head -1`
-	
+
 	# compare version for update/install
  	if [ `pkg info | grep -c $pkgname-$pkgvers` -eq 1 ]; then
 			echo "Package $pkgname-$pkgvers already installed."
 		else
 			env ASSUME_ALWAYS_YES=YES /usr/sbin/pkg add -f ${FREEBSD_PACKAGE_URL}${pkgname}-${pkgvers}.txz
-			
+
 			# if update openjdk8 then force detele snappyjava to reinstall for new version of openjdk
-			if [ "$pkgname" == "openjdk8" ]; then 
+			if [ "$pkgname" == "openjdk8" ]; then
 				env ASSUME_ALWAYS_YES=YES /usr/sbin/pkg delete snappyjava
 			fi
 		fi
 }
-	
+
 AddPkg snappy
 AddPkg cyrus-sasl
 AddPkg xorgproto
-AddPkg mkfontdir
 AddPkg python2
 AddPkg v8
 AddPkg icu
@@ -135,7 +134,6 @@ AddPkg libXi
 AddPkg libXt
 AddPkg libfontenc
 AddPkg mkfontscale
-AddPkg mkfontdir
 AddPkg dejavu
 AddPkg libXtst
 AddPkg libXrender
