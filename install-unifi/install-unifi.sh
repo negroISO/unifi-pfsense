@@ -7,7 +7,7 @@
 UNIFI_SOFTWARE_URL="https://dl.ubnt.com/unifi/5.10.24/UniFi.unix.zip"
 
 # The rc script associated with this branch or fork:
-RC_SCRIPT_URL="hhttps://github.com/negroISO/unifi-pfsense/blob/master/install-unifi/install-unifi.sh"
+RC_SCRIPT_URL="https://github.com/negroISO/unifi-pfsense/blob/master/install-unifi/install-unifi.sh"
 
 
 # If pkg-ng is not yet installed, bootstrap it:
