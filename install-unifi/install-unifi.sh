@@ -3,8 +3,31 @@
 # install-unifi.sh
 # Installs the Uni-Fi controller software on a FreeBSD machine (presumably running pfSense).
 
+# Either use provided version or get latest from API
+UNIFI_VERSION=$1
+if [ -z "$UNIFI_VERSION" ]; then
+  echo "Version not supplied, fetching latest"
+  UNIFI_VERSION=$(
+    curl -sL 'https://www.ui.com/download/?platform=unifi' -H 'X-Requested-With: XMLHttpRequest' |
+    jq -r '.downloads | map(select(.slug | test("unifi-network-controller-.*"))) | sort_by(.date_published) | .[-1].version' 2>/dev/null
+  )
+
+  if ! $(echo "$UNIFI_VERSION" | egrep -q '^[0-9]+\.[0-9]+\.[0-9]+$'); then
+    echo "Version \"$UNIFI_VERSION\" doesn't make sense" 
+    echo "If that's correct, run this again with it as the first argument"
+    exit 1
+  fi  
+
+  printf "Is version $UNIFI_VERSION okay? [y/N] " && read RESPONSE  
+  case $RESPONSE in
+    [Yy] ) ;;                    
+    * ) exit 1;;                   
+  esac
+fi
+echo "Installing UniFi Controller $UNIFI_VERSION"
+
 # The latest version of UniFi:
-UNIFI_SOFTWARE_URL="http://dl.ubnt.com/unifi/5.10.25/UniFi.unix.zip"
+UNIFI_SOFTWARE_URL="http://dl.ubnt.com/unifi/$UNIFI_VERSION/UniFi.unix.zip"
 
 # The rc script associated with this branch or fork:
 RC_SCRIPT_URL="https://raw.githubusercontent.com/negroiso/unifi-pfsense/master/rc.d/unifi.sh"
@@ -93,23 +116,24 @@ AddPkg () {
  	pkgname=$1
  	pkginfo=`grep "\"name\":\"$pkgname\"" packagesite.yaml`
  	pkgvers=`echo $pkginfo | pcregrep -o1 '"version":"(.*?)"' | head -1`
-
+	
 	# compare version for update/install
  	if [ `pkg info | grep -c $pkgname-$pkgvers` -eq 1 ]; then
 			echo "Package $pkgname-$pkgvers already installed."
 		else
 			env ASSUME_ALWAYS_YES=YES /usr/sbin/pkg add -f ${FREEBSD_PACKAGE_URL}${pkgname}-${pkgvers}.txz
-
+			
 			# if update openjdk8 then force detele snappyjava to reinstall for new version of openjdk
-			if [ "$pkgname" == "openjdk8" ]; then
+			if [ "$pkgname" == "openjdk8" ]; then 
 				env ASSUME_ALWAYS_YES=YES /usr/sbin/pkg delete snappyjava
 			fi
 		fi
 }
-
+	
 AddPkg snappy
 AddPkg cyrus-sasl
 AddPkg xorgproto
+AddPkg mkfontdir
 AddPkg python2
 AddPkg v8
 AddPkg icu
@@ -134,6 +158,7 @@ AddPkg libXi
 AddPkg libXt
 AddPkg libfontenc
 AddPkg mkfontscale
+AddPkg mkfontdir
 AddPkg dejavu
 AddPkg libXtst
 AddPkg libXrender
